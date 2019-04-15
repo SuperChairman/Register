@@ -1,0 +1,64 @@
+client:
+  port:
+    master: 8761
+    slave: 8762
+
+spring:
+  application:
+    name: register
+  cloud:
+    inetutils:
+      timeout-seconds: 60
+
+eureka:
+  server:
+    #是否关闭Eureka自我保护模式——————上生产时切记改成true，启动自我保护机制
+    enable-self-preservation: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+---
+spring:
+  profiles: master
+
+server:
+  port: ${client.port.master}
+
+eureka:
+  instance:
+    hostname: eureka.local.master
+  client:
+    service-url.defaultZone: http://eureka.local.slave:${client.port.slave}/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+logging:
+  level:
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
+  file: .log/registry-master.log
+
+---
+spring:
+  profiles: slave
+
+server:
+  port: ${client.port.slave}
+
+eureka:
+  instance:
+    hostname: eureka.local.slave
+  client:
+    service-url.defaultZone: http://eureka.local.master:${client.port.master}/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+
+logging:
+  level:
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
+  file: .log/registry-slave.log
